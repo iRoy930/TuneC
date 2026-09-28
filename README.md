@@ -174,10 +174,22 @@ TuneC/
 ├── Sources/TuneC/      # 开放源码：菜单栏 UI、热键、手势、HUD、自检
 ├── Core/               # 闭源预编译二进制核心 + 文本接口（.swiftinterface）
 ├── Resources/          # Info.plist、应用图标
-├── scripts/            # 构建与辅助脚本
-├── docs/               # 构建、架构、权限、排障、发布文档
-└── README.md
+├── scripts/            # 构建脚本、接口兼容校验、链接失败诊断、BlackHole 安装
+├── docs/               # 架构、构建、权限、排障、发布文档
+├── .github/            # CI 与发版工作流、issue / PR 模板
+├── Makefile            # 常用任务入口（build / debug / verify / clean / universal）
+├── README.md           # 中文说明（本文件）
+├── README.en.md        # English README
+├── CHANGELOG.md        # 版本变更记录
+├── LICENSE             # 许可证
+├── NOTICE              # 第三方组件声明
+├── CONTRIBUTING.md     # 贡献指南
+├── CODE_OF_CONDUCT.md  # 社区行为准则
+├── SECURITY.md         # 安全策略与私密报告入口
+└── SUPPORT.md          # 获取支持的渠道
 ```
+
+另有 `.editorconfig`、`.gitattributes`、`.gitignore` 三个仓库级配置文件。
 
 ---
 

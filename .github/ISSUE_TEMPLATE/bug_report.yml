@@ -10,6 +10,8 @@ body:
         感谢反馈！请尽量把环境信息填完整——外接显示器相关的绝大多数问题都取决于
         显示器的 DDC 能力与连接方式，缺少这些信息会让定位变得困难。
 
+        如果你没有使用外接显示器，「外接显示器型号」与「显示器连接方式」两项可以留空。
+
         一般性问题请走 [Discussions](https://github.com/iRoy930/TuneC/discussions)；
         提交前建议先阅读 [故障排查文档](https://github.com/iRoy930/TuneC/blob/main/docs/TROUBLESHOOTING.md)。
 
@@ -54,23 +56,25 @@ body:
     id: display_model
     attributes:
       label: 外接显示器型号
+      description: 未连接外接显示器时可留空
       placeholder: 例如 Dell U2723QE
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: connection
     attributes:
       label: 显示器连接方式
+      description: 未连接外接显示器时可留空
       options:
+        - 未连接外接显示器
         - Type-C / USB-C
         - DisplayPort (DP)
         - HDMI
         - Thunderbolt
-        - 未连接外接显示器
         - 其它
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: problem

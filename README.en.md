@@ -175,10 +175,22 @@ TuneC/
 ├── Sources/TuneC/      # Open source: menu bar UI, hotkeys, gestures, HUD, self-check
 ├── Core/               # Closed-source prebuilt binary core + text interface (.swiftinterface)
 ├── Resources/          # Info.plist, app icon
-├── scripts/            # Build and helper scripts
-├── docs/               # Build, architecture, permissions, troubleshooting, release docs
-└── README.md
+├── scripts/            # Build scripts, interface checks, link diagnostics, BlackHole installer
+├── docs/               # Architecture, build, permissions, troubleshooting, release docs
+├── .github/            # CI / release workflows, issue and PR templates
+├── Makefile            # Common task entry points (build / debug / verify / clean / universal)
+├── README.md           # Chinese README
+├── README.en.md        # English README (this file)
+├── CHANGELOG.md        # Version history
+├── LICENSE             # License
+├── NOTICE              # Third-party notices
+├── CONTRIBUTING.md     # Contribution guide
+├── CODE_OF_CONDUCT.md  # Code of conduct
+├── SECURITY.md         # Security policy and private reporting
+└── SUPPORT.md          # Where to get help
 ```
+
+Three repository-level config files also live here: `.editorconfig`, `.gitattributes`, `.gitignore`.
 
 ---
 

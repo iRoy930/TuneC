@@ -5,6 +5,13 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Changed
+
+- `.github/ISSUE_TEMPLATE/bug_report.yml`：「外接显示器型号」与「显示器连接方式」改为**非必填**，未使用外接显示器的用户不必再硬填；下拉项顺序调整为以「未连接外接显示器」起头。
+- README 中英文版的「目录结构 / Repository layout」补全为完整的顶层清单（此前只列出 6 项），并注明三个仓库级配置文件。
+
 ## [1.0.0] - 2026-09-28
 
 首个公开发布版本。
@@ -35,4 +42,5 @@
 - [Core/README.md](Core/README.md) 新增「工具链要求」一节，说明预编译核心与导出它的工具链之间的绑定关系。
 - README 的中英文版各补充一条权限相关 FAQ 与工具链版本要求。
 
+[Unreleased]: https://github.com/iRoy930/TuneC/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/iRoy930/TuneC/releases/tag/v1.0.0
