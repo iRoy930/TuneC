@@ -1,12 +1,20 @@
-# TuneC
+<p align="center">
+  <img src=".github/assets/appicon.png" width="180" alt="TuneC icon">
+</p>
 
-**TuneC** is a tiny macOS menu bar utility that lets you control your external monitor's volume and brightness with the keyboard and the scroll wheel, just like you would on the built-in speakers.
+<h1 align="center">TuneC</h1>
 
-English | [简体中文](README.md)
+<p align="center"><strong>TuneC</strong> is a tiny macOS menu bar utility that lets you control your external monitor's volume and brightness with the keyboard and the scroll wheel, just like you would on the built-in speakers.</p>
 
-[![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-lightgrey)](https://github.com/iRoy930/TuneC)
-[![Swift](https://img.shields.io/badge/Swift-5-orange)](https://github.com/iRoy930/TuneC)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<p align="center">
+  English | <a href="README.md">简体中文</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/iRoy930/TuneC"><img src="https://img.shields.io/badge/platform-macOS%2013%2B-lightgrey" alt="Platform"></a>&nbsp;
+  <a href="https://github.com/iRoy930/TuneC"><img src="https://img.shields.io/badge/Swift-5-orange" alt="Swift"></a>&nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+</p>
 
 > **Requirements**: macOS 13.0 or later (the Process Tap backend needs macOS 14.2+). Both Apple Silicon and Intel Macs are supported.
 

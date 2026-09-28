@@ -1,12 +1,20 @@
-# TuneC
+<p align="center">
+  <img src=".github/assets/appicon.png" width="180" alt="TuneC 图标">
+</p>
 
-**TuneC** 是一个 macOS 菜单栏常驻小工具，让你能像调节内置扬声器一样，用键盘和滚轮控制外接显示器的音量和亮度。
+<h1 align="center">TuneC</h1>
 
-[English](README.en.md) | 简体中文
+<p align="center"><strong>TuneC</strong> 是一个 macOS 菜单栏常驻小工具，让你能像调节内置扬声器一样，用键盘和滚轮控制外接显示器的音量和亮度。</p>
 
-[![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-lightgrey)](https://github.com/iRoy930/TuneC)
-[![Swift](https://img.shields.io/badge/Swift-5-orange)](https://github.com/iRoy930/TuneC)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<p align="center">
+  <a href="README.en.md">English</a> | 简体中文
+</p>
+
+<p align="center">
+  <a href="https://github.com/iRoy930/TuneC"><img src="https://img.shields.io/badge/platform-macOS%2013%2B-lightgrey" alt="Platform"></a>&nbsp;
+  <a href="https://github.com/iRoy930/TuneC"><img src="https://img.shields.io/badge/Swift-5-orange" alt="Swift"></a>&nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+</p>
 
 > **系统要求**：macOS 13.0 或更高（Process Tap 后端需 macOS 14.2+），Apple Silicon 与 Intel Mac 均支持。
 
