@@ -12,7 +12,11 @@ permissions:
 jobs:
   release:
     name: 打包并发布 ${{ github.ref_name }}
-    runs-on: macos-14
+    # macos-15（Xcode 16+，自带 macOS 15 SDK）：预编译核心 Core/libTuneCCore.a
+    # 要求链接 Swift 分体运行时（libswift_math / libswift_Builtin_float / …），
+    # 这些 .tbd 存根自 macOS 15 SDK 起才提供。macos-14（Xcode 15.4 / SDK 14.5）
+    # 链接必然失败，详见 docs/BUILD.md「常见构建报错」。
+    runs-on: macos-15
     env:
       # CI 上没有签名证书，使用 ad-hoc 签名
       SIGN_IDENTITY: "-"
@@ -36,15 +40,28 @@ jobs:
         # Core/TuneCCore.swiftinterface 若由比本 runner 更新的 Swift 导出，
         # 旧编译器会直接拒载（BitwiseCopyable / swift-compiler-version 版本检查），
         # 构建会在第一步就失败且错误信息很晦涩。这里提前给出明确定位。
+        # 注意：该校验只保证接口能被旧编译器「解析」，能否「链接」还取决于 SDK
+        # 版本（见下方构建步骤与 docs/BUILD.md）。
         run: bash scripts/check-core-interface.sh
 
       - name: 构建（不部署，产出通用二进制）
         run: |
-          set -o pipefail
+          set -uo pipefail
           NODEPLOY=1 bash scripts/build.sh release 2>&1 | tee build.log
+          rc=${PIPESTATUS[0]}
+          # 工具链过旧：build.sh 已打印可读诊断，这里给出对应的注解
+          if grep -q '无法链接预编译核心' build.log; then
+            echo "::error::预编译核心与当前工具链不兼容（需 Xcode 16 / macOS 15 SDK 或更新），详见上方诊断"
+            exit 1
+          fi
           if grep -qE 'warning:|error:' build.log; then
             echo "::error::构建输出里出现了 warning/error，拒绝发版"
             grep -nE 'warning:|error:' build.log
+            exit 1
+          fi
+          # 失败传播：日志里可能既没有 warning: 也没有 error:，必须显式看退出码
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::构建失败（退出码 $rc），拒绝发版"
             exit 1
           fi
           echo "✅ 构建完成，零告警"

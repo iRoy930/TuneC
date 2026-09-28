@@ -122,9 +122,13 @@ fi
 SLICES=()
 for slice in $ARCH_LIST; do
     SLICE_OUT="$PROJECT_DIR/build/obj/TuneC-$slice"
+    SLICE_LOG="$PROJECT_DIR/build/obj/TuneC-$slice.buildlog"
     mkdir -p "$PROJECT_DIR/build/obj"
     echo "🔨 编译 Swift 源码 [$slice] 并链接 libTuneCCore.a…"
-    swiftc $OPT_FLAG \
+
+    # 编译输出先落盘：成功且无告警时完全静默（与改造前一致），
+    # 失败时交给诊断脚本定位根因。
+    if ! swiftc $OPT_FLAG \
         -target "$slice-apple-$DEPLOY_TARGET" \
         -sdk "$SDK_PATH" \
         -I "$CORE_DIR" \
@@ -139,7 +143,25 @@ for slice in $ARCH_LIST; do
         -Xlinker -weak_framework -Xlinker CoreDisplay \
         -Xlinker -x \
         "$APP_SRC/"*.swift \
-        -o "$SLICE_OUT"
+        -o "$SLICE_OUT" > "$SLICE_LOG" 2>&1
+    then
+        echo ""
+        echo "──── 编译 / 链接失败（${slice}）───────────────────────────"
+        # 预编译核心与导出它的工具链绑定：若当前 SDK 缺少核心所要求的 Swift
+        # 分体运行时存根，链接器只会报一串 auto-linked library 与 FORCE_LOAD，
+        # 指不到根因上。这里是唯一能拿到真实链接输出的地方，交给诊断脚本解读；
+        # 识别不出来时退回显示原始输出的尾部。
+        if ! bash "$SCRIPT_DIR/diagnose-core-link.sh" --log "$SLICE_LOG" --sdk "$SDK_PATH"; then
+            tail -n 30 "$SLICE_LOG"
+        fi
+        echo "──────────────────────────────────────────────────────────"
+        exit 1
+    fi
+
+    if [ -s "$SLICE_LOG" ]; then
+        cat "$SLICE_LOG"
+    fi
+    rm -f "$SLICE_LOG"
     SLICES+=("$SLICE_OUT")
 done
 

@@ -86,6 +86,9 @@ Process Tap 后端不占用麦克风，因此**不会点亮菜单栏的橙色麦
 
 ### 方式二：从源码构建（只需 Command Line Tools，无需完整 Xcode）
 
+需要 **Xcode 16 / Command Line Tools 16 或更新**：预编译核心要求 macOS 15 SDK 或更新
+（原因见 [Core/README.md](Core/README.md)）。
+
 ```bash
 git clone https://github.com/iRoy930/TuneC.git
 cd TuneC

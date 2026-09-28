@@ -22,8 +22,15 @@ jobs:
       # 不同系统版本各自独立报告结果，不因一个失败而取消另一个
       fail-fast: false
       matrix:
+        # 只跑 macos-15（Xcode 16+，自带 macOS 15 SDK）。
+        #
+        # 预编译核心 Core/libTuneCCore.a 的目标文件带有对 Swift 分体运行时
+        # （libswift_math / libswift_Builtin_float / libswift_errno / …）的自动
+        # 链接要求，这些 .tbd 存根自 macOS 15 SDK 起才提供。macos-14 自带的是
+        # Xcode 15.4 / SDK 14.5，链接必然失败 —— 那是工具链下限，不是回归，
+        # 因此不再纳入矩阵。工具链过旧时的报错由 scripts/diagnose-core-link.sh
+        # 翻译成可读诊断（见 docs/BUILD.md「常见构建报错」）。
         os:
-          - macos-14
           - macos-15
     env:
       # 通用预编译核心已同时包含 arm64 与 x86_64。
@@ -48,16 +55,30 @@ jobs:
         # Core/TuneCCore.swiftinterface 若由比本 runner 更新的 Swift 导出，
         # 旧编译器会直接拒载（BitwiseCopyable / swift-compiler-version 版本检查），
         # 构建会在第一步就失败且错误信息很晦涩。这里提前给出明确定位。
+        # 注意：该校验只保证接口能被旧编译器「解析」，能否「链接」还取决于 SDK
+        # 版本（见上方矩阵说明）。
         run: bash scripts/check-core-interface.sh
 
       - name: 构建（不部署，产出通用二进制）
         run: |
-          set -o pipefail
+          set -uo pipefail
           NODEPLOY=1 bash scripts/build.sh release 2>&1 | tee build.log
+          rc=${PIPESTATUS[0]}
+          # 工具链过旧：build.sh 已打印可读诊断，这里给出对应的注解
+          if grep -q '无法链接预编译核心' build.log; then
+            echo "::error::预编译核心与当前工具链不兼容（需 Xcode 16 / macOS 15 SDK 或更新），详见上方诊断"
+            exit 1
+          fi
           # 构建必须零告警：编译器告警在这个工程里被当作错误对待
           if grep -qE 'warning:|error:' build.log; then
             echo "::error::构建输出里出现了 warning/error，见上方日志"
             grep -nE 'warning:|error:' build.log
+            exit 1
+          fi
+          # 失败传播：日志里可能既没有 warning: 也没有 error:，必须显式看退出码，
+          # 否则构建失败会被当成成功放过去
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::构建失败（退出码 $rc）"
             exit 1
           fi
           echo "✅ 构建完成，零告警"

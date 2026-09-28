@@ -4,7 +4,7 @@ TuneC 使用一个自包含的 shell 脚本完成构建，不依赖 Xcode 工程
 
 ## 环境要求
 
-- **构建机系统**：macOS 13.0 或更新（更新版本更稳妥）。
+- **构建机系统**：macOS 14.5 或更新（Xcode 16 / Command Line Tools 16 的系统前提）。
 - **工具链**：只需 **Command Line Tools**，无需安装完整 Xcode：
 
   ```bash
@@ -13,14 +13,24 @@ TuneC 使用一个自包含的 shell 脚本完成构建，不依赖 Xcode 工程
 
   安装后 `swiftc` 与 macOS SDK 即可用。脚本会检查 `swiftc` 与 SDK 是否存在，
   缺失时直接报错退出，不会半途产出损坏的 bundle。
-- **工具链版本**：需要 **Swift 5.10 或更新**（Xcode 15.4 / Command Line Tools 15.x 起）。
-  预编译核心对外暴露的是文本接口 `Core/TuneCCore.swiftinterface`，它被归一化到
-  「可被 Swift 5.10 读取」的形式。比这更旧的编译器会拒绝加载该接口，构建在第一步
-  就失败（报错形态见「常见构建报错」）。更新版本的工具链没有上限要求。
+- **工具链版本**：需要 **Xcode 16 / Command Line Tools 16 或更新**（即 macOS 15 SDK
+  或更新）。更新版本的工具链没有上限要求。
+
+  原因：预编译核心 `Core/libTuneCCore.a` 由更新版本的 SDK 导出，其目标文件要求链接
+  Swift 的**分体运行时库**（`libswift_math`、`libswift_Builtin_float`、`libswift_errno`、
+  `libswift_stdio`、`libswift_signal`、`libswift_time`、`libswiftsys_time`、`libswiftunistd`），
+  这些存根自 macOS 15 SDK 起才随 SDK 提供。更旧的 SDK 既找不到它们，也无法满足核心里的
+  `__swift_FORCE_LOAD_$_swift_*` 标记；链接阶段失败，报错形态见「常见构建报错」。
+- **接口可读性是另一件事**：`Core/TuneCCore.swiftinterface` 已归一化到「能被 Swift 5.10
+  读取」的形式，`scripts/check-core-interface.sh` 会守住这一点。但**能解析 ≠ 能链接** ——
+  链接还取决于上一条的 SDK 下限。
 - `git`（用于克隆源码）。
 
 运行 TuneC 的终端用户系统要求为 **macOS 13.0+**；其中「系统音频采集（Tap）」后端
 需要 **macOS 14.2+**，更早的系统会自动回退到 BlackHole 虚拟设备后端。
+
+构建工具链的 SDK 下限与 App 的运行下限是两回事：产物仍以 **macOS 13.0** 作为部署目标，
+在更旧的系统上照常运行。
 
 ## 获取源码
 
@@ -82,11 +92,20 @@ build/TuneC.app/Contents/MacOS/TuneC --selfcheck
 3. 复制 `Resources/Info.plist` 与 `Resources/AppIcon.icns` 到 bundle 内。
 4. 编译开源壳层源码 `Sources/TuneC/*.swift`。
 5. **链接 `Core/libTuneCCore.a` 预编译核心**，产出可执行文件。
+   编译或链接失败时，调用 `scripts/diagnose-core-link.sh` 解读链接器输出 ——
+   其中最常见的一类失败是「工具链过旧」，脚本会直接给出结论与升级做法。
 6. 清理 bundle 内的伴随文件（`._*`、`.DS_Store`），避免破坏后续签名。
 7. 用 `SIGN_IDENTITY` 指定的身份对 bundle 签名并校验。
 8. 未设置 `NODEPLOY=1` 时，将 bundle 部署到 `~/Applications/TuneC.app`。
 
 具体的编译与链接参数以 `scripts/build.sh` 为准。
+
+仓库还有两个守卫脚本，本地构建与 CI 都会用到：
+
+| 脚本 | 作用 |
+| --- | --- |
+| `scripts/check-core-interface.sh` | 保证 `Core/TuneCCore.swiftinterface` 能被旧编译器**解析**（`--fix` 可就地归一化） |
+| `scripts/diagnose-core-link.sh` | 从链接器输出定位「预编译核心与当前工具链不兼容」，给出可读诊断 |
 
 ## 签名与公证
 
@@ -203,7 +222,8 @@ sqlite3 "$DB" "SELECT service, length(csreq),
 | `❌ 未找到 swiftc` | 未安装 Command Line Tools | `xcode-select --install` |
 | `❌ 未找到 macOS SDK` | SDK 路径不存在 | 安装 Command Line Tools，或检查 `xcode-select -p` 输出是否正确 |
 | 构建成功但打开无反应 | 旧副本仍在运行 / 权限被拒 | 退出旧实例后重试；必要时重置权限（见 [PERMISSIONS.md](PERMISSIONS.md)） |
-| `no type named 'BitwiseCopyable' in module 'Swift'`<br>或 `failed to build module 'TuneCCore'; this SDK is not supported by the compiler` | 预编译核心接口由比本机**更新**的 Swift 导出：本机编译器不认识 Swift 6 才有的 `BitwiseCopyable`，或因接口文件头记录的编译器版本更高而主动拒载 | 升级 Command Line Tools / Xcode 到 **Swift 5.10+**。若你是维护者（接口由你重新生成后回退），运行 `bash scripts/check-core-interface.sh --fix` 把它归一化回基线 |
+| `no type named 'BitwiseCopyable' in module 'Swift'`<br>或 `failed to build module 'TuneCCore'; this SDK is not supported by the compiler` | 预编译核心接口由比本机**更新**的 Swift 导出：本机编译器不认识 Swift 6 才有的 `BitwiseCopyable`，或因接口文件头记录的编译器版本更高而主动拒载 | 升级 Command Line Tools / Xcode（接口自 **Swift 5.10** 起即可解析；实际完成构建需要 Xcode 16+，见下一条）。若你是维护者（接口由你重新生成后回退），运行 `bash scripts/check-core-interface.sh --fix` 把它归一化回基线 |
+| `ld: warning: Could not find or use auto-linked library 'swift_math'`<br>（通常连同一串 `swift_errno`、`swift_Builtin_float`、`swift_stdio`、`swiftunistd` …）<br>以及 `Undefined symbols … __swift_FORCE_LOAD_$_swift_math` | 预编译核心要求链接 Swift **分体运行时库**，而当前 SDK 早于 **macOS 15 SDK**（例如 Xcode 15.4 自带的 SDK 14.5） | 升级到 **Xcode 16 / Command Line Tools 16 或更新**。构建脚本会自动打印诊断，也可单独运行：`bash scripts/diagnose-core-link.sh --log <构建日志>` |
 
 ## 依赖
 

@@ -86,6 +86,9 @@ Prints 30+ checks covering device enumeration, volume read/write, the DDC channe
 
 ### Option 2: Build from source (Command Line Tools only, no full Xcode needed)
 
+Requires **Xcode 16 / Command Line Tools 16 or newer**: the prebuilt core needs the
+macOS 15 SDK or newer (see [Core/README.md](Core/README.md)).
+
 ```bash
 git clone https://github.com/iRoy930/TuneC.git
 cd TuneC

@@ -17,9 +17,13 @@
 #        the compiler (the SDK is built with 'Apple Swift version 6.1.2 …',
 #        while this compiler is 'Apple Swift version 5.10 …')
 #
-# 这两条都会让 GitHub 的 macos-14 runner（Xcode 15.4 / Swift 5.10）构建失败，
-# 而 Swift 官方并不保证「旧编译器能读新编译器导出的接口」。
-# 因此这里把接口归一化成向后兼容形态，并作为 CI 门禁守住它。
+# 这两条都会让「比维护者旧」的编译器构建失败，而 Swift 官方并不保证
+# 「旧编译器能读新编译器导出的接口」。因此这里把接口归一化成向后兼容形态，
+# 并作为 CI 门禁守住它 —— 让接口不因重新生成核心而回退。
+#
+# 注意范围：本脚本只管接口能否被**解析**。能否**链接**还取决于 SDK 版本
+# （预编译核心要求 macOS 15 SDK 或更新，见 Core/README.md 与
+# scripts/diagnose-core-link.sh）。能解析 ≠ 能链接。
 #
 # 用法
 # ----
@@ -33,8 +37,9 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 IFACE="$PROJECT_DIR/Core/TuneCCore.swiftinterface"
 
 # 向后兼容基线：接口至少要能被这个版本的编译器读取。
-# 5.10 = Xcode 15.4 / Command Line Tools 15.x，也是 GitHub macos-14 runner 的默认值。
-# 提高这个值等于抬高「从源码构建的最低工具链要求」，需同步更新 docs/BUILD.md。
+# 5.10 = Xcode 15.4 / Command Line Tools 15.x。
+# 实际完成构建的下限由 SDK 决定（Xcode 16+），比这里更严 —— 保持接口基线更低
+# 只是让产物在接口层面尽可能不挑工具链，成本为零。
 BASELINE="5.10"
 
 if [ ! -f "$IFACE" ]; then
