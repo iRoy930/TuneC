@@ -59,6 +59,16 @@ tccutil reset All io.github.iRoy930.tunec
 若 `tccutil` 提示未知的服务名，说明你的系统版本对该类别使用了不同的服务标识，
 此时直接到「隐私与安全性」面板中手动开关即可。
 
+`tccutil` 还有三个前提，不满足时会「看起来成功、实际什么都没做」：
+
+- **要在真实用户身份下执行**：麦克风与系统音频录制属于**用户级**授权。
+  在 root 身份（或非交互环境）下执行只会作用于系统级库，用户库里的记录纹丝不动。
+- **目标 App 必须可被系统解析**：该 bundle id 对应的 App 需要真实存在，且位于
+  `~/Applications`、`/Applications` 等常规位置。已被删除或移走时会直接报
+  `No such bundle identifier`。
+- **删除是异步的**：命令打印 `Successfully reset` 只代表请求已受理，
+  记录可能数秒到数分钟后才真正消失。立刻复查容易误判成「删不掉」。
+
 ### 方式二：用自检命令查看当前状态
 
 ```bash
@@ -71,5 +81,7 @@ build/TuneC.app/Contents/MacOS/TuneC --selfcheck
 ### 方式三：查看系统权限面板
 
 「系统设置 → 隐私与安全性」中对应类别里，TuneC 前面的开关状态即为当前生效状态。
-注意：**更换签名身份后这些记录可能失效**，需要重新授权（原因见
-[BUILD.md](BUILD.md) 的签名说明）。
+注意：**更换签名身份、或修改 App 的 bundle identifier，都会让已有记录失效**，
+需要重新授权（原因见 [BUILD.md](BUILD.md) 的签名说明）。
+其中改动 `CFBundleIdentifier` 还会在权限面板里多留下一条基于**旧 id 的孤儿记录** ——
+它不影响新 id 的授权与功能，删除方法见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)。

@@ -153,6 +153,13 @@ macOS 14.2 及以上**不需要**。默认的 Process Tap 后端可直接采集�
 
 亮度滑块只在识别到外接显示器时显示，且该显示器的 DDC 通道必须可用。显示器睡眠或使用转接坞时，DDC 通道可能暂时不可用。
 
+**Q：辅助功能里出现了两个 TuneC？卸载之后条目还在？**
+
+macOS 的权限记录独立于 App 存在，**卸载不会删除它**；若 App 的 bundle identifier 变更过，
+面板里还会多出一条基于旧 id 的记录。在「系统设置 → 隐私与安全性 → 辅助功能」里选中多余的
+那条，点左下角 **`−`** 即可 —— 注意**不要拨幽灵条目的开关**，那会把它重新激活。
+详见 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)。
+
 其他问题请先查阅 [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)。
 
 ---

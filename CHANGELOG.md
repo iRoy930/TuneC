@@ -5,8 +5,6 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
-
 ## [1.0.0] - 2026-09-28
 
 首个公开发布版本。
@@ -24,5 +22,11 @@
 - **虚拟音频环回**：接管系统声音 → 统一增益调节 → 输出到物理设备。提供两种采集后端：Core Audio Process Tap（默认，需 macOS 14.2+，走"系统音频录制"权限，不占用麦克风）与 BlackHole（回退，macOS 13 可用，需自行安装 BlackHole 2ch）。
 - **内置自检**：`TuneC --selfcheck` 输出 30 余项检查，覆盖设备枚举、音量读写、DDC 通道探针、环回链路与手势配置。
 
-[Unreleased]: https://github.com/iRoy930/TuneC/compare/v1.0.0...HEAD
+### Documentation
+
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) 新增权限记录排障条目：说明卸载不会删除权限记录、变更 bundle identifier 会留下旧 id 的孤儿记录，以及幽灵条目只能点 `−` 删除。
+- [docs/PERMISSIONS.md](docs/PERMISSIONS.md) 补充 `tccutil` 的三个前提条件，并说明更换签名身份或修改 bundle identifier 会让已有授权失效。
+- [docs/BUILD.md](docs/BUILD.md) 新增「让授权在反复重建之间保持」一节，给出用固定自签名证书避免重建后重复授权的做法。
+- README 的中英文版各补充一条权限相关 FAQ。
+
 [1.0.0]: https://github.com/iRoy930/TuneC/releases/tag/v1.0.0

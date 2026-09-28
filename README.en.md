@@ -153,6 +153,14 @@ Gestures are off by default and require **Accessibility** permission. Grant it i
 
 The brightness slider only appears when an external display is detected and its DDC channel is usable. The DDC channel may be temporarily unavailable while the display is asleep or behind certain adapters.
 
+**Q: Two TuneC entries in Accessibility? An entry that survived uninstalling?**
+
+macOS permission records live independently of the app, so **uninstalling does not remove
+them**; if the bundle identifier ever changed, an extra record based on the old id stays
+behind. Select the stale entry in **System Settings → Privacy & Security → Accessibility**
+and click **`−`** in the bottom-left corner — do **not** flip its toggle, which would
+reactivate the ghost entry. See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
 For anything else, start with [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 ---

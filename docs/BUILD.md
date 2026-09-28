@@ -105,9 +105,72 @@ build/TuneC.app/Contents/MacOS/TuneC --selfcheck
   xcrun stapler staple build/TuneC.app
   ```
 
-- **注意权限记录**：macOS 的 TCC 授权与签名身份绑定。更换签名身份（尤其是在
-  ad-hoc 与证书之间切换）后，系统会把 App 视为新程序，需要重新授予权限，
-  参见 [PERMISSIONS.md](PERMISSIONS.md)。
+- **注意权限记录**：macOS 的 TCC 授权与签名身份绑定。**更换签名身份**（尤其是在
+  ad-hoc 与证书之间切换）或**修改 `CFBundleIdentifier`** 之后，系统会把 App 视为
+  另一个程序，需要重新授予权限；后者还会在权限面板里留下一条旧 id 的孤儿记录
+  （删除方法见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)）。
+  详见 [PERMISSIONS.md](PERMISSIONS.md)。
+
+### 让授权在反复重建之间保持（本地开发推荐）
+
+默认的 **ad-hoc 签名**（`--sign -`）在每次重新构建后权限都会失效。原因在于：
+ad-hoc 签名下，系统记录下来的代码要求是**纯 cdhash**，也就是二进制内容的哈希 ——
+代码一改、cdhash 就变，授权随即作废。反复开发时每次都得去系统设置里重新勾选。
+
+改用**固定的自签名证书**可以一劳永逸：代码要求会变成「证书根指纹」的形式，
+与二进制内容完全解耦，重建多少次都不影响已有授权。
+
+```bash
+D=~/tunec-signing && mkdir -p "$D" && cd "$D"
+
+# 1) 生成自签名代码签名证书
+cat > cert.cnf <<'EOF'
+[ req ]
+distinguished_name = dn
+x509_extensions    = ext
+prompt             = no
+[ dn ]
+CN = TuneC Code Signing
+O  = TuneC
+C  = CN
+[ ext ]
+basicConstraints     = critical,CA:TRUE
+keyUsage             = critical,digitalSignature
+extendedKeyUsage     = critical,codeSigning
+subjectKeyIdentifier = hash
+EOF
+openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 3650 \
+    -keyout key.pem -out cert.pem -config cert.cnf
+
+# OpenSSL 3.x 需要 -legacy 才能产出 macOS 认的 p12；1.1.1 没有该参数
+openssl pkcs12 -export -out app.p12 -inkey key.pem -in cert.pem \
+    -name "TuneC Code Signing" -passout pass:local-dev -legacy 2>/dev/null || \
+openssl pkcs12 -export -out app.p12 -inkey key.pem -in cert.pem \
+    -name "TuneC Code Signing" -passout pass:local-dev
+
+# 2) 导入登录钥匙串。带 -T 之后，首次签名不会弹钥匙串授权框
+security import app.p12 -k "$HOME/Library/Keychains/login.keychain-db" -P local-dev \
+    -T /usr/bin/codesign -T /usr/bin/security
+
+# 3) 用固定身份构建（identifier 由 Info.plist 决定，务必保持不变）
+SIGN_IDENTITY="TuneC Code Signing" bash scripts/build.sh release
+```
+
+自签名证书**不需要**设为「始终信任」：`codesign --verify --strict` 可直接通过。
+
+要确认授权是否真的稳住了，看 TCC 记录里的 `last_modified` 有没有动 ——
+比只看 csreq 更直观：
+
+```bash
+DB="$HOME/Library/Application Support/com.apple.TCC/TCC.db"
+sqlite3 "$DB" "SELECT service, length(csreq),
+  datetime(last_modified,'unixepoch','localtime') FROM access
+  WHERE client='io.github.iRoy930.tunec';"
+# 重建前后各查一次：last_modified 不变 = 授权保持，未触发重新授权
+```
+
+> **切换签名身份的那一次**，旧授权会作废，需要重新授权一次 —— 此后就一劳永逸。
+> 证书私钥只需留在钥匙串里，**不要**把 `key.pem` / `app.p12` 提交进仓库。
 
 ## 跨架构构建
 
