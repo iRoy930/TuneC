@@ -192,10 +192,12 @@ if [ "${NODEPLOY:-0}" != "1" ]; then
     codesign --force --sign "$SIGN_IDENTITY" "$DEST" >/dev/null 2>&1 || true
 
     # 重新注册到 LaunchServices。
-    # 上面是「先 rm -rf 再 ditto」——这会换掉 bundle 的 inode，而 LaunchServices
-    # 的记录按 路径 + inode 建立：旧记录失效后新记录不会自动补上，于是 Finder
-    # 解析不到 CFBundleIconFile，图标退化成通用占位图（app 仍能正常运行）。
-    # 必须显式重注册一次。
+    # 上面只替换了 Contents 子目录、保住了 $DEST 自身的 inode，但 LaunchServices
+    # 的记录按 路径 + inode 建立 —— 历史上用「整体 rm -rf 再 ditto」部署过留下的
+    # 死记录、以及被 Finder / Spotlight 扫进来的副本，都可能与本次部署抢同一
+    # bundle id：失效的记录不会被新记录自动顶掉，于是 Finder 解析不到
+    # CFBundleIconFile，图标退化成通用占位图（app 本身仍能正常运行）。
+    # 每次部署显式重注册一次，代价极低。
     LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
     if [ -x "$LSREGISTER" ]; then
         "$LSREGISTER" -f "$DEST" >/dev/null 2>&1 || true
