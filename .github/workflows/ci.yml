@@ -44,6 +44,12 @@ jobs:
           swiftc --version
           echo "developer dir: $(xcode-select -p)"
 
+      - name: 校验预编译核心接口的向后兼容性
+        # Core/TuneCCore.swiftinterface 若由比本 runner 更新的 Swift 导出，
+        # 旧编译器会直接拒载（BitwiseCopyable / swift-compiler-version 版本检查），
+        # 构建会在第一步就失败且错误信息很晦涩。这里提前给出明确定位。
+        run: bash scripts/check-core-interface.sh
+
       - name: 构建（不部署，产出通用二进制）
         run: |
           set -o pipefail

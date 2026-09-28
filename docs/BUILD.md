@@ -13,6 +13,10 @@ TuneC 使用一个自包含的 shell 脚本完成构建，不依赖 Xcode 工程
 
   安装后 `swiftc` 与 macOS SDK 即可用。脚本会检查 `swiftc` 与 SDK 是否存在，
   缺失时直接报错退出，不会半途产出损坏的 bundle。
+- **工具链版本**：需要 **Swift 5.10 或更新**（Xcode 15.4 / Command Line Tools 15.x 起）。
+  预编译核心对外暴露的是文本接口 `Core/TuneCCore.swiftinterface`，它被归一化到
+  「可被 Swift 5.10 读取」的形式。比这更旧的编译器会拒绝加载该接口，构建在第一步
+  就失败（报错形态见「常见构建报错」）。更新版本的工具链没有上限要求。
 - `git`（用于克隆源码）。
 
 运行 TuneC 的终端用户系统要求为 **macOS 13.0+**；其中「系统音频采集（Tap）」后端
@@ -199,6 +203,7 @@ sqlite3 "$DB" "SELECT service, length(csreq),
 | `❌ 未找到 swiftc` | 未安装 Command Line Tools | `xcode-select --install` |
 | `❌ 未找到 macOS SDK` | SDK 路径不存在 | 安装 Command Line Tools，或检查 `xcode-select -p` 输出是否正确 |
 | 构建成功但打开无反应 | 旧副本仍在运行 / 权限被拒 | 退出旧实例后重试；必要时重置权限（见 [PERMISSIONS.md](PERMISSIONS.md)） |
+| `no type named 'BitwiseCopyable' in module 'Swift'`<br>或 `failed to build module 'TuneCCore'; this SDK is not supported by the compiler` | 预编译核心接口由比本机**更新**的 Swift 导出：本机编译器不认识 Swift 6 才有的 `BitwiseCopyable`，或因接口文件头记录的编译器版本更高而主动拒载 | 升级 Command Line Tools / Xcode 到 **Swift 5.10+**。若你是维护者（接口由你重新生成后回退），运行 `bash scripts/check-core-interface.sh --fix` 把它归一化回基线 |
 
 ## 依赖
 

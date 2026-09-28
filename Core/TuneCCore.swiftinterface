@@ -1,7 +1,7 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-compiler-version: Apple Swift version 5.10
 // swift-module-flags: -enable-objc-interop -enable-library-evolution -static -module-name TuneCCore
-// swift-module-flags-ignorable:  -interface-compiler-version 6.1.2
+// swift-module-flags-ignorable:  -interface-compiler-version 5.10
 import AVFoundation
 import AudioToolbox
 import CoreAudio
@@ -320,14 +320,11 @@ public struct DisplayProfile : Swift.Codable, Swift.Equatable {
 extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.Equatable {}
 extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.Hashable {}
 extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.Sendable {}
-extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.BitwiseCopyable {}
 extension TuneCCore.CaptureBackend : Swift.Equatable {}
 extension TuneCCore.CaptureBackend : Swift.Hashable {}
 extension TuneCCore.CaptureBackend : Swift.RawRepresentable {}
 extension TuneCCore.CaptureBackend : Swift.Sendable {}
-extension TuneCCore.CaptureBackend : Swift.BitwiseCopyable {}
 extension TuneCCore.VolumeBackend : Swift.Equatable {}
 extension TuneCCore.VolumeBackend : Swift.Hashable {}
 extension TuneCCore.VolumeBackend : Swift.RawRepresentable {}
 extension TuneCCore.VolumeBackend : Swift.Sendable {}
-extension TuneCCore.VolumeBackend : Swift.BitwiseCopyable {}
