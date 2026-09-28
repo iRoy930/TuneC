@@ -1,0 +1,160 @@
+name: Bug 报告
+description: 报告 TuneC 的缺陷或异常行为
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请尽量把环境信息填完整——外接显示器相关的绝大多数问题都取决于
+        显示器的 DDC 能力与连接方式，缺少这些信息会让定位变得困难。
+
+        一般性问题请走 [Discussions](https://github.com/iRoy930/TuneC/discussions)；
+        提交前建议先阅读 [故障排查文档](https://github.com/iRoy930/TuneC/blob/main/docs/TROUBLESHOOTING.md)。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索过现有 issue，确认这不是重复报告
+          required: true
+
+  - type: input
+    id: macos_version
+    attributes:
+      label: macOS 版本
+      description: 「关于本机」中可查看，请连括号里的构建号一起给出
+      placeholder: 例如 macOS 14.5 (23F79)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: chip
+    attributes:
+      label: 芯片
+      options:
+        - Apple Silicon (M 系列)
+        - Intel
+        - 不确定
+    validations:
+      required: true
+
+  - type: input
+    id: tunec_version
+    attributes:
+      label: TuneC 版本
+      description: 菜单栏图标中的「关于」，或下载页面上的 Release 版本号
+      placeholder: 例如 v1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: display_model
+    attributes:
+      label: 外接显示器型号
+      placeholder: 例如 Dell U2723QE
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection
+    attributes:
+      label: 显示器连接方式
+      options:
+        - Type-C / USB-C
+        - DisplayPort (DP)
+        - HDMI
+        - Thunderbolt
+        - 未连接外接显示器
+        - 其它
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 简要说明遇到了什么问题
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: selfcheck
+    attributes:
+      label: 自检输出（可选，但强烈建议附上）
+      description: 在终端运行下方命令后粘贴输出，至少包含最后那行汇总（形如 ✅31 ⏭️3 ❌0）
+      value: |
+        # 命令：
+        # build/TuneC.app/Contents/MacOS/TuneC --selfcheck
+        #
+        # 粘贴输出：
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志（可选）
+      description: /tmp/tunec.log 中与问题发生时间点相关的片段
+      render: text
+    validations:
+      required: false
+
+  - type: dropdown
+    id: loopback
+    attributes:
+      label: 是否启用了虚拟音频环回？使用哪种采集后端？
+      description: 菜单 →「虚拟音频」与「采集方式」中可查看
+      options:
+        - 未启用虚拟音频环回
+        - 已启用 — 系统音频采集（Core Audio Process Tap，macOS 14.2+）
+        - 已启用 — BlackHole 虚拟设备
+        - 不确定
+    validations:
+      required: false
+
+  - type: dropdown
+    id: gesture
+    attributes:
+      label: 是否启用了边缘滚轮手势？
+      options:
+        - 已启用
+        - 未启用
+        - 不确定
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        如果问题与「音量调节无效果」有关，请一并说明该显示器是否支持 DDC/CI 音量
+        （自检的第 10 项会给出结论），这能直接区分是 DDC 路径还是虚拟音频路径的问题。

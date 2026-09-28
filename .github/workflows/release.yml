@@ -1,0 +1,143 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+# 创建 Release 并上传产物需要写权限
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 打包并发布 ${{ github.ref_name }}
+    runs-on: macos-14
+    env:
+      # CI 上没有签名证书，使用 ad-hoc 签名
+      SIGN_IDENTITY: "-"
+      # 发版产物必须是通用二进制，否则 Intel Mac 用户无法运行
+      UNIVERSAL: "1"
+
+    steps:
+      - name: 检出源码（含 tag 与 CHANGELOG）
+        uses: actions/checkout@v4
+        with:
+          # 需要完整历史：从 CHANGELOG 提取段落、必要时回退到提交记录
+          fetch-depth: 0
+
+      - name: 打印工具链环境
+        run: |
+          echo "触发 tag: ${GITHUB_REF_NAME}"
+          echo "runner 架构: $(uname -m)"
+          swiftc --version
+
+      - name: 构建（不部署，产出通用二进制）
+        run: |
+          set -o pipefail
+          NODEPLOY=1 bash scripts/build.sh release 2>&1 | tee build.log
+          if grep -qE 'warning:|error:' build.log; then
+            echo "::error::构建输出里出现了 warning/error，拒绝发版"
+            grep -nE 'warning:|error:' build.log
+            exit 1
+          fi
+          echo "✅ 构建完成，零告警"
+
+      - name: 校验产物为通用二进制
+        run: |
+          set -euo pipefail
+          BIN="build/TuneC.app/Contents/MacOS/TuneC"
+          lipo -info "$BIN"
+          # 发版前必须确认两个架构都在，否则 Intel 用户装上去会闪退
+          for a in arm64 x86_64; do
+            lipo -info "$BIN" | grep -qw "$a" || { echo "::error::可执行文件缺少 $a 架构"; exit 1; }
+          done
+          echo "✅ 通用二进制校验通过（arm64 + x86_64）"
+
+      - name: 发布前自检（--selfcheck）
+        run: |
+          set -uo pipefail
+          BIN="build/TuneC.app/Contents/MacOS/TuneC"
+          set +e
+          "$BIN" --selfcheck > selfcheck.txt 2>&1
+          rc=$?
+          set -e
+          cat selfcheck.txt
+          echo "::notice::selfcheck 退出码 = ${rc}"
+
+          # 与 ci.yml 同一套门禁逻辑：runner 无外接显示器 / 无可用音频设备 /
+          # 无辅助功能授权，依赖真实设备的断言在这里不具代表性。
+          # 硬门禁 = 自检能完整跑完并打印汇总行（崩溃 / 卡死才拒绝发版）；
+          # ❌ 计数打印出来并在 > 0 时给出警告注解，由维护者判断。
+          summary="$(grep -E '自检结果' selfcheck.txt | tail -n 1 || true)"
+          if [ -z "${summary}" ]; then
+            echo "::error::自检没有跑到汇总行就结束了（崩溃或卡死），拒绝发版"
+            exit 1
+          fi
+          echo "汇总: ${summary}"
+
+          failed="$(printf '%s\n' "$summary" | grep -oE '❌[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -n 1 || true)"
+          if [ -z "${failed}" ]; then
+            echo "::error::汇总行里没有 ❌ 计数，自检输出格式可能被改坏了"
+            exit 1
+          fi
+          echo "解析结果: ❌ = ${failed}"
+          if [ "${failed}" -ne 0 ]; then
+            echo "::warning::自检有 ${failed} 项失败，请人工确认是环境差异还是真实回归后再决定是否继续。"
+          else
+            echo "✅ 自检全通过（❌ = 0）"
+          fi
+
+      - name: 打包为 zip
+        run: |
+          set -euo pipefail
+          ZIP="TuneC-${GITHUB_REF_NAME}.zip"
+          # --keepParent 保留 TuneC.app 顶层目录，解压后即为可直接拖入
+          # 「应用程序」的 .app bundle（不要用 zip -r，会丢失部分 HFS 元数据）
+          ditto -c -k --keepParent build/TuneC.app "$ZIP"
+          ls -lh "$ZIP"
+
+      - name: 从 CHANGELOG.md 提取本版 Release Notes
+        run: |
+          set -uo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"   # v1.0.0 → 1.0.0
+
+          # 提取逻辑：
+          #   1) 匹配形如 "## 1.0.0" / "## [1.0.0]" / "## v1.0.0" 的标题行
+          #      （版本号允许前缀 v 与方括号，标题后允许跟随日期等任意文本）；
+          #   2) 从该标题的下一行开始输出，直到遇到下一个二级标题 "## "，
+          #      或文档末尾的链接引用定义（形如 "[1.0.0]: https://..."）为止。
+          awk -v ver="$VERSION" '
+            $0 ~ "^##[[:space:]]+\\[?v?" ver "\\]?" { inside = 1; next }
+            inside && /^##[[:space:]]/ { exit }
+            inside && /^\[[^]]+\]:/ { exit }
+            inside { print }
+          ' CHANGELOG.md > release_notes.md
+
+          # 兜底：CHANGELOG 里没有该版本段落时，退化为按提交记录生成
+          if [ ! -s release_notes.md ]; then
+            echo "::warning::CHANGELOG.md 中未找到 ${VERSION} 的段落，回退为按提交记录生成"
+            PREV="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+            if [ -n "$PREV" ]; then
+              RANGE="${PREV}..${GITHUB_REF_NAME}"
+            else
+              RANGE=""
+            fi
+            {
+              echo "## ${GITHUB_REF_NAME}"
+              echo
+              git log --pretty=format:'- %s' $RANGE
+            } > release_notes.md
+          fi
+
+          echo "----- release_notes.md -----"
+          cat release_notes.md
+
+      - name: 创建 GitHub Release 并上传产物
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release_notes.md
+          files: TuneC-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: false

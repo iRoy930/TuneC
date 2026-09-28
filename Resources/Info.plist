@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>TuneC</string>
+    <key>CFBundleDisplayName</key>
+    <string>TuneC</string>
+    <key>CFBundleIdentifier</key>
+    <string>io.github.iRoy930.tunec</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleExecutable</key>
+    <string>TuneC</string>
+    <!-- 应用图标：打包时由 scripts/build.sh 把 Resources/AppIcon.icns
+         复制进 Contents/Resources/ -->
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <!-- macOS 14+：读取任何输入设备（含 BlackHole 虚拟设备）都需要麦克风 TCC 授权。
+         缺少此声明时系统不弹提示、直接拒绝，表现为采集到数字静音（capE=0） -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>TuneC 需要读取虚拟音频设备（BlackHole）中的声音以完成音频环回，并把声音输出到您选择的扬声器。本应用不会录音、不会上传任何音频。</string>
+    <!-- 系统音频采集（Core Audio Process Tap，macOS 14.2+）。
+         缺少此声明时，tap 创建会静默失败或授权提示不出现。
+         走这一层不受麦克风权限管控，不会点亮菜单栏的橙色麦克风指示点。 -->
+    <key>NSAudioCaptureUsageDescription</key>
+    <string>TuneC 需要采集系统正在播放的声音，以便按您的调节改变音量并输出到所选扬声器。本应用不会录音、不会保存或上传任何音频。</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 TuneC</string>
+</dict>
+</plist>

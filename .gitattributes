@@ -1,0 +1,19 @@
+# ── 默认：文本文件自动识别，统一 LF 换行 ──
+* text=auto eol=lf
+
+# ── 二进制文件：禁止行尾转换与合并处理 ──
+*.a     binary
+*.icns  binary
+*.png   binary
+*.jpg   binary
+
+# ── 预编译音频核心：不可合并、不做文本转换，且不计入语言统计 ──
+Core/libTuneCCore.a binary -diff -merge -text
+Core/libTuneCCore.a linguist-generated=true
+
+# ── 脚本与构建文件：强制 LF（CRLF 会让 bash 解析失败）──
+*.sh      text eol=lf
+Makefile  text eol=lf
+
+# ── Swift 源码：显式声明为文本 + LF ──
+*.swift text eol=lf

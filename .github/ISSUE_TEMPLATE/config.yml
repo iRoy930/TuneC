@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 使用提问 / 开放讨论
+    url: https://github.com/iRoy930/TuneC/discussions
+    about: 使用方法、配置疑问、想法交流等非缺陷类话题请到 Discussions
+  - name: 📖 故障排查文档
+    url: https://github.com/iRoy930/TuneC/blob/main/docs/TROUBLESHOOTING.md
+    about: 调音量没反应、DDC 读不到、滚轮手势不生效等常见问题的排查步骤
+  - name: 🔐 权限说明
+    url: https://github.com/iRoy930/TuneC/blob/main/docs/PERMISSIONS.md
+    about: 了解 TuneC 为什么需要麦克风 / 系统音频录制 / 辅助功能权限

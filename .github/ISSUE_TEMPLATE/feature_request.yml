@@ -1,0 +1,60 @@
+name: 功能建议
+description: 为 TuneC 提出新功能或改进建议
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的想法！请尽量说明「你在什么场景下遇到了什么不便」，
+        这比单纯描述想要的功能更有助于判断方案是否合适。
+
+        开放讨论也欢迎直接发到 [Discussions](https://github.com/iRoy930/TuneC/discussions)。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索过现有 issue 与 Discussions，确认这不是重复建议
+          required: true
+
+  - type: textarea
+    id: request
+    attributes:
+      label: 需求描述
+      description: 你希望 TuneC 增加或改进什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 描述触发这个需求的真实场景（设备、连接方式、日常使用流程等）
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你期望 TuneC 如何表现？越具体越好
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案
+      description: 你考虑过的其它做法，或目前临时绕过的方式（没有可写「无」）
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        补充说明：音频引擎、DDC 协议实现与设备管理等底层能力位于闭源的预编译核心中，
+        涉及这些内部实现细节的建议可能无法直接实现，但欢迎提出需求本身。

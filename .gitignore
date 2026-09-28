@@ -1,0 +1,40 @@
+# ─────────────────────────────────────────────────────────────
+# TuneC — Git 忽略规则
+#
+# 注意：Core/libTuneCCore.a 与 Core/TuneCCore.swiftinterface 是随仓库发布的
+#       预编译核心，必须入库。见文件末尾的反向规则（!Core/...）。
+# ─────────────────────────────────────────────────────────────
+
+# ── macOS 系统文件 ──
+.DS_Store
+.AppleDouble
+._*
+.Spotlight-V100
+.Trashes
+*.AppleDouble
+
+# ── Swift / 脚本构建产物 ──
+build/
+.build/
+DerivedData/
+.swiftpm/
+*.o
+*.dSYM
+*.swiftmodule
+
+# ── 打包产物 ──
+dist/
+*.zip
+*.dmg
+
+# ── 编辑器 / IDE ──
+.vscode/
+.idea/
+*.xcuserstate
+xcuserdata/
+
+# ── 显式保留发布用的预编译核心 ──
+# 反向规则：即便将来新增了更宽的通配规则（如 *.a / *.swift*），
+# 也必须保证这两个文件被跟踪。
+!Core/libTuneCCore.a
+!Core/TuneCCore.swiftinterface

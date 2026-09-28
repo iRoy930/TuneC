@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# CI 只读仓库内容，不需要写权限
+permissions:
+  contents: read
+
+# 同一分支/PR 再次推送时，取消上一次未完成的运行
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: 构建与自检 (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # 不同系统版本各自独立报告结果，不因一个失败而取消另一个
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+    env:
+      # 通用预编译核心已同时包含 arm64 与 x86_64。
+      # GitHub 托管的 macOS runner 已全面转向 Apple Silicon，没有免费的
+      # Intel 镜像，因此这里用 UNIVERSAL=1 在 Apple Silicon 上交叉编译出
+      # x86_64 切片并 lipo 合成——两个架构的工具链都会被真正跑一遍。
+      # CI 上没有签名证书，强制 ad-hoc 签名。
+      SIGN_IDENTITY: "-"
+      UNIVERSAL: "1"
+
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
+
+      - name: 打印工具链环境
+        run: |
+          echo "runner 架构: $(uname -m)"
+          swiftc --version
+          echo "developer dir: $(xcode-select -p)"
+
+      - name: 构建（不部署，产出通用二进制）
+        run: |
+          set -o pipefail
+          NODEPLOY=1 bash scripts/build.sh release 2>&1 | tee build.log
+          # 构建必须零告警：编译器告警在这个工程里被当作错误对待
+          if grep -qE 'warning:|error:' build.log; then
+            echo "::error::构建输出里出现了 warning/error，见上方日志"
+            grep -nE 'warning:|error:' build.log
+            exit 1
+          fi
+          echo "✅ 构建完成，零告警"
+
+      - name: 校验通用二进制
+        run: |
+          set -euo pipefail
+          lipo -info build/TuneC.app/Contents/MacOS/TuneC
+          for a in arm64 x86_64; do
+            lipo -info build/TuneC.app/Contents/MacOS/TuneC | grep -qw "$a" \
+              || { echo "::error::可执行文件缺少 $a 架构"; exit 1; }
+          done
+          echo "✅ arm64 + x86_64 都在"
+
+      - name: 自检（--selfcheck）
+        run: |
+          set -uo pipefail
+          BIN="build/TuneC.app/Contents/MacOS/TuneC"
+
+          # 先拿到完整输出与退出码，再判定（不直接用 set -e 让自检中断流程）
+          set +e
+          "$BIN" --selfcheck > selfcheck.txt 2>&1
+          rc=$?
+          set -e
+          cat selfcheck.txt
+          echo "::notice::selfcheck 退出码 = ${rc}"
+
+          # ── 门禁逻辑 ──────────────────────────────────────────────────
+          # 自检共 30 余项，其中相当一部分依赖真实硬件：外接显示器（DDC）、
+          # 可用的音频输入/输出设备、辅助功能授权。GitHub 托管的 macOS runner
+          # 这些都没有，所以「逐项是否通过」在这里不具代表性——真正的红色信号
+          # 是「自检根本跑不到汇总行」（崩溃 / 卡死）。
+          #
+          # 因此 CI 的硬门禁是：
+          #   1. 构建零告警
+          #   2. 通用二进制两个架构齐全
+          #   3. 自检能完整跑完并打印汇总行
+          # 而汇总行里的 ❌ 计数会打印出来并在 > 0 时给出警告注解（warning，
+          # 不阻断），供维护者判断是环境差异还是真回归。
+          # 本机（有真实设备）请用 `make verify` 做严格验收。
+          # ──────────────────────────────────────────────────────────────
+          summary="$(grep -E '自检结果' selfcheck.txt | tail -n 1 || true)"
+          if [ -z "${summary}" ]; then
+            echo "::error::自检没有跑到汇总行就结束了（进程崩溃或卡死），视为构建失败"
+            exit 1
+          fi
+          echo "汇总: ${summary}"
+
+          failed="$(printf '%s\n' "$summary" | grep -oE '❌[[:space:]]*[0-9]+' | grep -oE '[0-9]+' | tail -n 1 || true)"
+          if [ -z "${failed}" ]; then
+            echo "::error::汇总行里没有 ❌ 计数，自检输出格式可能被改坏了"
+            exit 1
+          fi
+          echo "解析结果: ❌ = ${failed}"
+          if [ "${failed}" -ne 0 ]; then
+            echo "::warning::自检有 ${failed} 项失败。CI runner 无外接显示器 / 无可用音频设备 / 无辅助功能授权，设备相关断言在这里不具代表性；请结合上方逐项输出判断。"
+          else
+            echo "✅ 自检全通过（❌ = 0）"
+          fi
+
+      - name: 上传 App 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: TuneC-app-${{ matrix.os }}
+          path: build/TuneC.app
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: 上传自检报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfcheck-${{ matrix.os }}
+          path: selfcheck.txt
+          if-no-files-found: ignore
+          retention-days: 14

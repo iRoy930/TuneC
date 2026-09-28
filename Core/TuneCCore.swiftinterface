@@ -1,0 +1,333 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -enable-objc-interop -enable-library-evolution -static -module-name TuneCCore
+// swift-module-flags-ignorable:  -interface-compiler-version 6.1.2
+import AVFoundation
+import AudioToolbox
+import CoreAudio
+import CoreGraphics
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public struct AudioDevice : Swift.Identifiable, Swift.Hashable {
+  public let id: CoreAudio.AudioObjectID
+  public let name: Swift.String
+  public let uid: Swift.String
+  public let manufacturer: Swift.String
+  public let hasOutput: Swift.Bool
+  public let hasInput: Swift.Bool
+  public init(id: CoreAudio.AudioObjectID, name: Swift.String, uid: Swift.String, manufacturer: Swift.String, hasOutput: Swift.Bool, hasInput: Swift.Bool)
+  public var displayName: Swift.String {
+    get
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  public static func == (lhs: TuneCCore.AudioDevice, rhs: TuneCCore.AudioDevice) -> Swift.Bool
+  public typealias ID = CoreAudio.AudioObjectID
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers final public class AudioDeviceManager {
+  public static let shared: TuneCCore.AudioDeviceManager
+  final public var onDevicesChanged: (() -> Swift.Void)?
+  final public var onDefaultOutputChanged: ((TuneCCore.AudioDevice?) -> Swift.Void)?
+  final public var onDefaultInputChanged: ((TuneCCore.AudioDevice?) -> Swift.Void)?
+  final public var onOutputVolumeChanged: ((Swift.Float32) -> Swift.Void)?
+  final public var onOutputMuteChanged: ((Swift.Bool) -> Swift.Void)?
+  final public func allDevices() -> [TuneCCore.AudioDevice]
+  final public func outputDevices() -> [TuneCCore.AudioDevice]
+  final public func inputDevices() -> [TuneCCore.AudioDevice]
+  final public func defaultOutputDevice() -> TuneCCore.AudioDevice?
+  final public func defaultInputDevice() -> TuneCCore.AudioDevice?
+  @discardableResult
+  final public func setDefaultOutputDevice(_ device: TuneCCore.AudioDevice) -> Swift.Bool
+  @discardableResult
+  final public func setDefaultInputDevice(_ device: TuneCCore.AudioDevice) -> Swift.Bool
+  @frozen public enum CycleDirection {
+    case forward, backward
+    public static func == (a: TuneCCore.AudioDeviceManager.CycleDirection, b: TuneCCore.AudioDeviceManager.CycleDirection) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  final public func cycleToNextOutputDevice()
+  @discardableResult
+  final public func cycleOutputDevice(direction: TuneCCore.AudioDeviceManager.CycleDirection) -> Swift.String?
+  public static func nextCycleIndex(current: Swift.Int, count: Swift.Int, direction: TuneCCore.AudioDeviceManager.CycleDirection) -> Swift.Int
+  final public func cycleToNextInputDevice()
+  final public func outputVolume() -> Swift.Float32
+  @discardableResult
+  final public func setOutputVolume(_ volume: Swift.Float32) -> Swift.Bool
+  final public func increaseOutputVolume()
+  final public func decreaseOutputVolume()
+  final public func isOutputMuted() -> Swift.Bool
+  @discardableResult
+  final public func setOutputMuted(_ muted: Swift.Bool) -> Swift.Bool
+  final public func toggleOutputMute()
+  final public func outputSupportsSoftwareVolume() -> Swift.Bool
+  final public func deviceSupportsSoftwareVolume(_ id: CoreAudio.AudioObjectID) -> Swift.Bool
+  final public func deviceSupportsSoftwareMute(_ id: CoreAudio.AudioObjectID) -> Swift.Bool
+  final public func registerListeners()
+  final public func transportType(for id: CoreAudio.AudioObjectID) -> Swift.UInt32
+  final public func hasSettableVolume(on id: CoreAudio.AudioObjectID) -> Swift.Bool
+  final public func hasSettableMute(on id: CoreAudio.AudioObjectID) -> Swift.Bool
+  final public func device(byID id: CoreAudio.AudioObjectID) -> TuneCCore.AudioDevice?
+  @objc deinit
+}
+public func log(_ message: Swift.String)
+public enum DDCVCP {
+  public static let luminance: Swift.UInt8
+  public static let contrast: Swift.UInt8
+  public static let volume: Swift.UInt8
+  public static let mute: Swift.UInt8
+}
+public struct DDCDisplay : Swift.Identifiable, Swift.CustomStringConvertible {
+  public let index: Swift.Int
+  public let uuid: Swift.String
+  public let name: Swift.String
+  public let vendor: Swift.UInt32
+  public let model: Swift.UInt32
+  public let serial: Swift.UInt32
+  public let cgid: Swift.UInt32
+  public let isExternal: Swift.Bool
+  public init(index: Swift.Int, uuid: Swift.String, name: Swift.String, vendor: Swift.UInt32, model: Swift.UInt32, serial: Swift.UInt32, cgid: Swift.UInt32, isExternal: Swift.Bool)
+  public var id: Swift.String {
+    get
+  }
+  public var description: Swift.String {
+    get
+  }
+  public typealias ID = Swift.String
+}
+public struct DDCProbeResult {
+  public let display: TuneCCore.DDCDisplay
+  public let original: Swift.Int
+  public let written: Swift.Int
+  public let readback: Swift.Int
+  public let restored: Swift.Int
+  public let channelOK: Swift.Bool
+  public let volumeWritable: Swift.Bool
+  public init(display: TuneCCore.DDCDisplay, original: Swift.Int, written: Swift.Int, readback: Swift.Int, restored: Swift.Int, channelOK: Swift.Bool, volumeWritable: Swift.Bool)
+  public var summary: Swift.String {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers final public class DDCManager {
+  public static let shared: TuneCCore.DDCManager
+  @discardableResult
+  final public func refreshDisplays() -> [TuneCCore.DDCDisplay]
+  final public func displays() -> [TuneCCore.DDCDisplay]
+  final public func readVCP(uuid: Swift.String, code: Swift.UInt8) -> (cur: Swift.Int, max: Swift.Int)?
+  @discardableResult
+  final public func writeVCP(uuid: Swift.String, code: Swift.UInt8, value: Swift.UInt16) -> Swift.Bool
+  final public func readVolumeScalar(uuid: Swift.String) -> Swift.Float32?
+  @discardableResult
+  final public func writeVolumeScalar(uuid: Swift.String, _ scalar: Swift.Float32) -> Swift.Bool
+  final public func isMuted(uuid: Swift.String) -> Swift.Bool?
+  @discardableResult
+  final public func setMuted(uuid: Swift.String, _ muted: Swift.Bool) -> Swift.Bool
+  final public func probeVolume(uuid: Swift.String, testValue: Swift.UInt16 = 50) -> TuneCCore.DDCProbeResult?
+  final public func knownVolumeWritable(uuid: Swift.String) -> Swift.Bool?
+  @objc deinit
+}
+extension Foundation.NSNotification.Name {
+  public static let tunecDisplaysChanged: Foundation.Notification.Name
+}
+public struct DetectedDisplay {
+  public let displayID: Swift.UInt32
+  public let vendorID: Swift.UInt32
+  public let productID: Swift.UInt32
+  public let serialNumber: Swift.String
+  public let name: Swift.String
+  public let isExternal: Swift.Bool
+  public let uuid: Swift.String
+  public let profile: TuneCCore.DisplayProfile?
+  public init(displayID: Swift.UInt32, vendorID: Swift.UInt32, productID: Swift.UInt32, serialNumber: Swift.String, name: Swift.String, isExternal: Swift.Bool, uuid: Swift.String, profile: TuneCCore.DisplayProfile?)
+  public var isRecognized: Swift.Bool {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers final public class DisplayDetector {
+  public static let shared: TuneCCore.DisplayDetector
+  final public var detected: [TuneCCore.DetectedDisplay] {
+    get
+  }
+  @discardableResult
+  final public func detectDisplays() -> [TuneCCore.DetectedDisplay]
+  final public func primaryExternalDisplay() -> TuneCCore.DetectedDisplay?
+  final public func statusLine() -> Swift.String
+  @objc deinit
+}
+public func RegisterDisplayHotplugCallback()
+public struct DisplayProfile : Swift.Codable, Swift.Equatable {
+  public let vendorID: Swift.UInt32
+  public let productID: Swift.UInt32
+  public var serialNumber: Swift.String
+  public var displayName: Swift.String
+  public var ddcBrightnessSupported: Swift.Bool
+  public var ddcVolumeSupported: Swift.Bool
+  public var ddcContrastSupported: Swift.Bool
+  public var ddcInputSwitchSupported: Swift.Bool
+  public var needsVirtualAudio: Swift.Bool
+  public var quirks: [Swift.String]
+  public init(vendorID: Swift.UInt32, productID: Swift.UInt32, serialNumber: Swift.String, displayName: Swift.String, ddcBrightnessSupported: Swift.Bool, ddcVolumeSupported: Swift.Bool, ddcContrastSupported: Swift.Bool, ddcInputSwitchSupported: Swift.Bool, needsVirtualAudio: Swift.Bool, quirks: [Swift.String])
+  public var matchKey: Swift.String {
+    get
+  }
+  public static func == (a: TuneCCore.DisplayProfile, b: TuneCCore.DisplayProfile) -> Swift.Bool
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+@_hasMissingDesignatedInitializers final public class DisplayProfileStore {
+  public static let shared: TuneCCore.DisplayProfileStore
+  final public func load()
+  @discardableResult
+  final public func save() -> Swift.Bool
+  final public func profile(vendorID: Swift.UInt32, productID: Swift.UInt32) -> TuneCCore.DisplayProfile?
+  final public func upsert(_ profile: TuneCCore.DisplayProfile)
+  @discardableResult
+  final public func remove(vendorID: Swift.UInt32, productID: Swift.UInt32) -> Swift.Bool
+  final public func allProfiles() -> [TuneCCore.DisplayProfile]
+  public static func defaultProfiles() -> [TuneCCore.DisplayProfile]
+  @objc deinit
+}
+@frozen public enum CaptureBackend : Swift.String, Swift.CaseIterable {
+  case processTap
+  case blackHole
+  public static let defaultsKey: Swift.String
+  public static var current: TuneCCore.CaptureBackend {
+    get
+    set
+  }
+  public var displayName: Swift.String {
+    get
+  }
+  public var isAvailable: Swift.Bool {
+    get
+  }
+  public init?(rawValue: Swift.String)
+  public typealias AllCases = [TuneCCore.CaptureBackend]
+  public typealias RawValue = Swift.String
+  nonisolated public static var allCases: [TuneCCore.CaptureBackend] {
+    get
+  }
+  public var rawValue: Swift.String {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers final public class VirtualAudioEngine {
+  public static let shared: TuneCCore.VirtualAudioEngine
+  public static let blackHoleNameHint: Swift.String
+  public static let ringCapacity: Swift.Int
+  final public var isRunning: Swift.Bool {
+    get
+  }
+  final public var noSoundDetected: Swift.Bool {
+    get
+  }
+  final public var gain: Swift.Float {
+    get
+  }
+  final public var physicalTargetID: CoreAudio.AudioDeviceID {
+    get
+  }
+  final public var activeCaptureBackend: TuneCCore.CaptureBackend {
+    get
+  }
+  final public func findBlackHoleDevice() -> TuneCCore.AudioDevice?
+  final public var isBlackHoleInstalled: Swift.Bool {
+    get
+  }
+  @discardableResult
+  public static func audioInputAuthorizationLabel() -> Swift.String
+  @discardableResult
+  public static func ensureAudioInputAuthorization() -> Swift.Bool
+  final public func start(physicalOutput: TuneCCore.AudioDevice) -> Swift.Bool
+  final public func stop()
+  final public func setGain(_ g: Swift.Float)
+  public struct DiagSnapshot {
+    public let fillRatio: Swift.Float
+    public let callbacks: Swift.Int
+    public let discard: Swift.Int
+    public init(fillRatio: Swift.Float, callbacks: Swift.Int, discard: Swift.Int)
+  }
+  final public func diagSnapshot() -> TuneCCore.VirtualAudioEngine.DiagSnapshot
+  @objc deinit
+}
+@frozen public enum VolumeBackend : Swift.String, Swift.CustomStringConvertible {
+  case coreAudio
+  case ddc
+  case virtualAudio
+  case unsupported
+  public var description: Swift.String {
+    get
+  }
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers final public class VolumeRouter {
+  public static let shared: TuneCCore.VolumeRouter
+  final public var backend: TuneCCore.VolumeBackend {
+    get
+  }
+  final public var ddcUUID: Swift.String? {
+    get
+  }
+  final public var onBackendChanged: ((TuneCCore.VolumeBackend) -> Swift.Void)?
+  final public var virtualAudioActive: Swift.Bool {
+    get
+  }
+  final public var virtualAudioPhysicalDevice: TuneCCore.AudioDevice? {
+    get
+  }
+  final public func refreshRouting()
+  final public func outputVolume() -> Swift.Float32
+  @discardableResult
+  final public func setOutputVolume(_ volume: Swift.Float32) -> Swift.Bool
+  final public func increaseOutputVolume()
+  final public func decreaseOutputVolume()
+  final public func isOutputMuted() -> Swift.Bool
+  @discardableResult
+  final public func setOutputMuted(_ muted: Swift.Bool) -> Swift.Bool
+  final public func toggleOutputMute()
+  final public var backendLabel: Swift.String {
+    get
+  }
+  final public var canEnableVirtualAudio: Swift.Bool {
+    get
+  }
+  final public var captureBackend: TuneCCore.CaptureBackend {
+    get
+  }
+  final public var noSoundDetected: Swift.Bool {
+    get
+  }
+  final public var virtualEngineRunning: Swift.Bool {
+    get
+  }
+  final public func recoverFromBlackHoleIfNeeded()
+  @discardableResult
+  final public func enableVirtualAudio() -> Swift.Bool
+  final public func disableVirtualAudio()
+  @objc deinit
+}
+extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.Equatable {}
+extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.Hashable {}
+extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.Sendable {}
+extension TuneCCore.AudioDeviceManager.CycleDirection : Swift.BitwiseCopyable {}
+extension TuneCCore.CaptureBackend : Swift.Equatable {}
+extension TuneCCore.CaptureBackend : Swift.Hashable {}
+extension TuneCCore.CaptureBackend : Swift.RawRepresentable {}
+extension TuneCCore.CaptureBackend : Swift.Sendable {}
+extension TuneCCore.CaptureBackend : Swift.BitwiseCopyable {}
+extension TuneCCore.VolumeBackend : Swift.Equatable {}
+extension TuneCCore.VolumeBackend : Swift.Hashable {}
+extension TuneCCore.VolumeBackend : Swift.RawRepresentable {}
+extension TuneCCore.VolumeBackend : Swift.Sendable {}
+extension TuneCCore.VolumeBackend : Swift.BitwiseCopyable {}
